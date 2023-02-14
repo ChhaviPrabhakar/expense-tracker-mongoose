@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const bcrypt = require('bcrypt');
 
 function isStringInvalid(string) {
     if(string == undefined || string.length === 0) {
@@ -19,13 +20,17 @@ exports.signUp = async (req, res, next) => {
             return res.status(400).json({err: "Something is missing!"});
         }
 
-        const data = await User.create({
-            name: name,
-            email: email,
-            password: password
+        const saltRounds = 10;
+        bcrypt.hash(password, saltRounds, async (err, hash) => {
+            console.log(err);
+            const data = await User.create({
+                name: name,
+                email: email,
+                password: hash
+            });
+            //User.create({ name, email, password });
+            res.status(201).json({ message: 'Successfully Signed Up' });
         });
-        //User.create({ name, email, password });
-        res.status(201).json({message: 'Successfully Signed Up'});
     } catch(err) {
         console.log(err);
         res.status(500).json({err: "User already exist!"});
@@ -35,15 +40,25 @@ exports.signUp = async (req, res, next) => {
 exports.login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
+
+        if(isStringInvalid(email) || isStringInvalid(password)) {
+            return res.status(400).json({err: "Email or Password is missing!"});
+        }
+
         const user = await User.findAll({ where: { email }});
         if(user.length > 0) {
-            if(user[0].password === password) {
-                res.status(200).json({success: true, message: 'Logged in Successfully!'});
-            } else {
-                res.status(401).json({success: false, message: 'Password is incorrect!'});
-            }
+            // if(user[0].password === password) {
+            bcrypt.compare(password, user[0].password, (err, result) => {
+                if (err) {
+                    throw new Error('Something went wrong!');
+                } else if (result === true) {
+                    res.status(200).json({ success: true, message: 'Logged in Successfully!' });
+                } else {
+                    return res.status(401).json({ success: false, message: 'Password is incorrect!' });
+                }
+            });
         } else {
-            res.status(404).json({success: false, message: 'User not found!'});
+            return res.status(404).json({success: false, message: 'User not found!'});
         } 
     } catch(err) {
         console.log(err);
