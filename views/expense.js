@@ -6,6 +6,7 @@ async function addExpense(e) {
             description: e.target.choDes.value,
             category: e.target.choCat.value
         }
+        const token  = localStorage.getItem('token')
         const response = await axios
         .post('http://localhost:3000/expense/add-expense', expense, { headers: {"Authorization" : token} });
         addExpenseOnScreen(response.data.newExpense);
