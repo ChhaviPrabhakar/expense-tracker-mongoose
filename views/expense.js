@@ -13,6 +13,11 @@ async function addExpense(e) {
         console.log(err);
         document.body.innerHTML += `<div style="color:red;">${err.message} <div>`;
     }
+
+    //clearing inputs fields
+    e.target.exAmo.value = '';
+    e.target.choDes.value = '';
+    e.target.choCat.value = '';
 }
 
 function addExpenseOnScreen(expense) {
@@ -37,3 +42,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log(err);
     }
 });
+
+async function deleteExpense(expenseId) {
+    try {
+        const response = await axios
+        .delete(`http://localhost:3000/expense/delete-expense/${expenseId}`);
+        removeExpenseFromScreen(expenseId);
+    } catch(err) {
+        console.log(err);
+    }
+}
+
+function removeExpenseFromScreen(expenseId) {
+    let parentNode = document.getElementById('expenseList');
+    let childNodeToBeDeleted = document.getElementById(expenseId);
+    if (childNodeToBeDeleted) {
+        parentNode.removeChild(childNodeToBeDeleted);
+    }
+}
