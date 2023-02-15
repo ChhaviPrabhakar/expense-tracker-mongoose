@@ -14,15 +14,6 @@ app.use(express.json());
 const userRoutes = require('./routes/user');
 const expenseRoutes = require('./routes/expense');
 
-app.use((req, res, next) => {
-    User.findByPk(1)
-    .then(user => {
-        req.user = user;
-        next();
-    })
-    .catch(err => console.log(err));
-});
-
 app.use('/user', userRoutes);
 app.use('/expense', expenseRoutes);
 
