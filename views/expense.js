@@ -1,6 +1,7 @@
 function showPremiumUserMessage() {
     document.getElementById('rzp-button1').style.visibility = "hidden";
     document.getElementById('message').innerHTML = "You are a Premium user ";
+    document.getElementById('form').style.display = "block";
 }
 
 function parseJwt(token) {
@@ -27,7 +28,7 @@ function showLeaderboard() {
             let leaderBoardList = document.getElementById('leaderboard');
             leaderBoardList.innerHTML += '<h1>Leader Board</h1>';
             response.data.forEach((userDetails) => {
-                leaderBoardList.innerHTML += `<li>Name - ${userDetails.name} Total Expense - ${userDetails.total_cost || 0} </li>`;
+                leaderBoardList.innerHTML += `<li>Name - ${userDetails.name} Total Expense - ${userDetails.totalExpenses || 0} </li>`;
             })
 
         } catch (err) {
@@ -119,7 +120,7 @@ document.getElementById('rzp-button1').onclick = async function (e) {
             "key_id": response.data.key_id,
             "order_id": response.data.order.id,
             "handler": async function (response) {
-                await axios
+                const res = await axios
                     .post('http://localhost:3000/purchase/updateTransactionStatus', {
                         order_id: options.order_id,
                         payment_id: response.razorpay_payment_id
@@ -127,7 +128,7 @@ document.getElementById('rzp-button1').onclick = async function (e) {
 
                 alert('You are Premium User now.');
                 showPremiumUserMessage();
-                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('token', res.data.token);
                 showLeaderboard();
             },
         };
@@ -143,4 +144,24 @@ document.getElementById('rzp-button1').onclick = async function (e) {
     } catch (err) {
         console.log(err);
     }
+}
+
+function download(){
+    axios.get('http://localhost:3000/user/download', { headers: {"Authorization" : token} })
+    .then((response) => {
+        if(response.status === 201){
+            //the bcakend is essentially sending a download link
+            //  which if we open in browser, the file would download
+            var a = document.createElement("a");
+            a.href = response.data.fileUrl;
+            a.download = 'myexpense.csv';
+            a.click();
+        } else {
+            throw new Error(response.data.message)
+        }
+
+    })
+    .catch((err) => {
+        showError(err)
+    });
 }
