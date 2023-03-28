@@ -1,6 +1,34 @@
 const Expense = require('../models/expense');
 const User = require('../models/user');
 const sequelize = require('../util/database');
+const ExpenseService = require('../services/expenseServices');
+const s3service = require('../services/s3services');
+const DownloadedExpense = require('../models/download');
+
+exports.downloadExpense = async (req, res, next) => {
+    try {
+        const expenses = await ExpenseService.getExpenses(req);
+        const stringifiedExpenses = JSON.stringify(expenses);
+        const userId = req.user.id;
+        const filename = `Expense${userId}/${new Date()}.txt`;
+        const fileURL = await s3service.uploadToS3(stringifiedExpenses, filename);
+        const saveTodb = await req.user.createDownloadedExpense({ fileURL });
+        res.status(200).json({ success: true, fileURL });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ success: false, err });
+    }
+}
+
+exports.downloadedExpense = async (req, res, next) => {
+    try {
+        const downloadedExpenseData = await req.user.getDownloadedExpenses();
+        res.status(201).json({ success: true, downloadedExpenseData });
+    }catch(err) {
+        console.log(err);
+        res.status(500).json({ success: false, err });
+    }
+}
 
 exports.addExpense = async (req, res, next) => {
     const t = await sequelize.transaction();
@@ -40,16 +68,18 @@ exports.deleteExpense = async (req, res, next) => {
     try {
         const expenseId = req.params.id;
 
-        if(expenseId == undefined || expenseId.length === 0) {
+        if (expenseId == undefined || expenseId.length === 0) {
             return res.status(400).json({ success: false });
         }
 
-        const numberOfRows = await Expense.destroy({ where: { id: expenseId, userId: req.user.id } }, { transaction: t });
-        if(numberOfRows === 0) {
-            return res.status(404).json({success: false, message: 'This Expense doesnt belongs to the user'});
+        const deletedExpense = await Expense.findOne({ where: { id: expenseId, userId: req.user.id } });
+        if (!deletedExpense) {
+            return res.status(404).json({ success: false, message: 'This Expense doesnt belongs to the user' });
         }
 
-        const totalExpense = Number(req.user.totalExpenses) - Number(numberOfRows.exAmount);
+        await Expense.destroy({ where: { id: expenseId, userId: req.user.id } }, { transaction: t });
+
+        const totalExpense = Number(req.user.totalExpenses) - Number(deletedExpense.exAmount);
         await User.update({ totalExpenses: totalExpense }, { where: { id: req.user.id }, transaction: t });
 
         await t.commit();
@@ -61,4 +91,3 @@ exports.deleteExpense = async (req, res, next) => {
         return res.status(500).json({ success: false, message: 'Failed!' });
     }
 }
-

@@ -1,7 +1,6 @@
 function showPremiumUserMessage() {
     document.getElementById('rzp-button1').style.visibility = "hidden";
     document.getElementById('message').innerHTML = "You are a Premium user ";
-    document.getElementById('form').style.display = "block";
 }
 
 function parseJwt(token) {
@@ -119,6 +118,14 @@ document.getElementById('rzp-button1').onclick = async function (e) {
         var options = {
             "key_id": response.data.key_id,
             "order_id": response.data.order.id,
+            // "prefill": {
+            //     "name": "Chhavi Prabhakar",
+            //     "email": "prabhakarchhavi9@gmail.com",
+            //     "contact": "9608946965"
+            //   },
+            //   "theme": {
+            //    "color": "#3399cc"
+            //   },
             "handler": async function (response) {
                 const res = await axios
                     .post('http://localhost:3000/purchase/updateTransactionStatus', {
@@ -146,22 +153,30 @@ document.getElementById('rzp-button1').onclick = async function (e) {
     }
 }
 
-function download(){
-    axios.get('http://localhost:3000/user/download', { headers: {"Authorization" : token} })
-    .then((response) => {
-        if(response.status === 201){
-            //the bcakend is essentially sending a download link
+async function download() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await axios
+        .get('http://localhost:3000/expense/download', { headers: { "Authorization": token } });
+        if (response.status === 200) {
+            //the backend is essentially sending a download link
             //  which if we open in browser, the file would download
             var a = document.createElement("a");
-            a.href = response.data.fileUrl;
+            a.href = response.data.fileURL;
             a.download = 'myexpense.csv';
             a.click();
+            const fURL = await axios
+            .get('http://localhost:3000/expense/downloaded-expense', { headers: { "Authorization": token } });
+
+            let downloadedList = document.getElementById('downloadedExpense');
+            downloadedList.innerHTML += '<h1>Downloaded Expenses</h1>';
+            for (var i=0; i<fURL.data.downloadedExpenseData.length; i++) {
+                downloadedList.innerHTML += `<li><a href=${fURL.data.downloadedExpenseData[i]}>File${i+1}</a> Downloaded at - ${fURL.data.downloadedExpenseData[i].updatedAt}</li>`;
+            }
         } else {
             throw new Error(response.data.message)
         }
-
-    })
-    .catch((err) => {
-        showError(err)
-    });
+    } catch (err) {
+        console.log(err);
+    }
 }
