@@ -24,7 +24,7 @@ exports.downloadedExpense = async (req, res, next) => {
     try {
         const downloadedExpenseData = await req.user.getDownloadedExpenses();
         res.status(201).json({ success: true, downloadedExpenseData });
-    }catch(err) {
+    } catch (err) {
         console.log(err);
         res.status(500).json({ success: false, err });
     }
@@ -55,8 +55,22 @@ exports.addExpense = async (req, res, next) => {
 
 exports.getExpense = async (req, res, next) => {
     try {
-        const allExpense = await Expense.findAll({ where: { userId: req.user.id } });
-        res.status(200).json({ allExpense, success: true });
+        const EXPENSES_PER_PAGE = 2;
+        const totalExpense = await Expense.count();
+        console.log('totalExpense-->', totalExpense);
+        const page = req.query.page || 1;
+        console.log(page);
+
+        const allExpense = await Expense.findAll({ where: { userId: req.user.id }, offset: (page - 1) * EXPENSES_PER_PAGE, limit: EXPENSES_PER_PAGE });
+
+        res.status(200).json({ allExpense, success: true,
+        currentPage: page,
+        hasNextPage: EXPENSES_PER_PAGE * page < totalExpense,
+        nextPage: parseInt(page) + 1,
+        hasPrevPage: page > 1,
+        prevPage: page - 1,
+        lastPage: Math.ceil(totalExpense / EXPENSES_PER_PAGE)
+        });
     } catch (err) {
         console.log(err);
         return res.status(500).json({ success: false, error: err });
