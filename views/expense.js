@@ -78,16 +78,64 @@ document.addEventListener('DOMContentLoaded', async () => {
             showPremiumUserMessage();
             showLeaderboard();
         }
+        const page = 1;
         const response = await axios
-            .get('http://localhost:3000/expense/get-expense', { headers: { "Authorization": token } });
+            .get(`http://localhost:3000/expense/get-expense?page=${page}`, { headers: { "Authorization": token } });
         console.log(response.data.allExpense);
         for (var i = 0; i < response.data.allExpense.length; i++) {
             addExpenseOnScreen(response.data.allExpense[i]);
+            showPagination(response.data);
         }
     } catch (err) {
         console.log(err);
     }
 });
+
+function showPagination({
+    currentPage,
+    hasNextPage,
+    nextPage,
+    hasPrevPage,
+    prevPage,
+    lastPage
+}) {
+    const pagination = document.getElementById('pagination');
+    pagination.innerHTML = '';
+
+    if (hasPrevPage) {
+        const btn2 = document.createElement('button');
+        btn2.innerHTML = prevPage;
+        btn2.addEventListener('click', () => { getExpenses(prevPage) });
+        pagination.appendChild(btn2);
+    }
+
+    const btn1 = document.createElement('button');
+    btn1.innerHTML = `<h3>${currentPage}</h3>`;
+    btn1.addEventListener('click', () => { getExpenses(currentPage) });
+    pagination.appendChild(btn1);
+
+    if (hasNextPage) {
+        const btn3 = document.createElement('button');
+        btn3.innerHTML = nextPage;
+        btn3.addEventListener('click', () => { getExpenses(nextPage) });
+        pagination.appendChild(btn3);
+    }
+}
+
+async function getExpenses(page) {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await axios
+            .get(`http://localhost:3000/expense/get-expense?page=${page}`, { headers: { "Authorization": token } });
+        console.log(response.data.allExpense);
+        for (var i = 0; i < response.data.allExpense.length; i++) {
+            addExpenseOnScreen(response.data.allExpense[i]);
+            showPagination(response.data);
+        }
+    } catch(err) {
+        console.log(err);
+    }
+}
 
 async function deleteExpense(expenseId) {
     try {
@@ -157,7 +205,7 @@ async function download() {
     try {
         const token = localStorage.getItem('token');
         const response = await axios
-        .get('http://localhost:3000/expense/download', { headers: { "Authorization": token } });
+            .get('http://localhost:3000/expense/download', { headers: { "Authorization": token } });
         if (response.status === 200) {
             //the backend is essentially sending a download link
             //  which if we open in browser, the file would download
@@ -166,12 +214,12 @@ async function download() {
             a.download = 'myexpense.csv';
             a.click();
             const fURL = await axios
-            .get('http://localhost:3000/expense/downloaded-expense', { headers: { "Authorization": token } });
+                .get('http://localhost:3000/expense/downloaded-expense', { headers: { "Authorization": token } });
 
             let downloadedList = document.getElementById('downloadedExpense');
             downloadedList.innerHTML += '<h1>Downloaded Expenses</h1>';
-            for (var i=0; i<fURL.data.downloadedExpenseData.length; i++) {
-                downloadedList.innerHTML += `<li><a href=${fURL.data.downloadedExpenseData[i]}>File${i+1}</a> Downloaded at - ${fURL.data.downloadedExpenseData[i].updatedAt}</li>`;
+            for (var i = 0; i < fURL.data.downloadedExpenseData.length; i++) {
+                downloadedList.innerHTML += `<li><a href=${fURL.data.downloadedExpenseData[i]}>File${i + 1}</a> Downloaded at - ${fURL.data.downloadedExpenseData[i].updatedAt}</li>`;
             }
         } else {
             throw new Error(response.data.message)
