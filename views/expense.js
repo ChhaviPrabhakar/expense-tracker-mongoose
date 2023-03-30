@@ -69,6 +69,15 @@ function addExpenseOnScreen(expense) {
     parentNode.innerHTML += childHTML;
 }
 
+const page = 1;
+const rowPerPage = document.getElementById('rowPerPage');
+const rowBtn = document.getElementById('rowbtn');
+rowBtn.addEventListener('click', () => {
+    localStorage.setItem('rowPerPage', rowPerPage.value);
+    getExpenses(page);
+});
+
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         const token = localStorage.getItem('token');
@@ -78,9 +87,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             showPremiumUserMessage();
             showLeaderboard();
         }
-        const page = 1;
+
+        const dynamicPgn = localStorage.getItem('rowPerPage');
+        const row = dynamicPgn || rowPerPage.value;
+
         const response = await axios
-            .get(`http://localhost:3000/expense/get-expense?page=${page}`, { headers: { "Authorization": token } });
+            .get(`http://localhost:3000/expense/get-expense?page=${page}&rowPerPage=${row}`, { headers: { "Authorization": token } });
         console.log(response.data.allExpense);
         for (var i = 0; i < response.data.allExpense.length; i++) {
             addExpenseOnScreen(response.data.allExpense[i]);
@@ -125,14 +137,18 @@ function showPagination({
 async function getExpenses(page) {
     try {
         const token = localStorage.getItem('token');
+
+        const dynamicPgn = localStorage.getItem('rowPerPage');
+        const row = dynamicPgn || rowPerPage.value;
+        
         const response = await axios
-            .get(`http://localhost:3000/expense/get-expense?page=${page}`, { headers: { "Authorization": token } });
+            .get(`http://localhost:3000/expense/get-expense?page=${page}&rowPerPage=${row}`, { headers: { "Authorization": token } });
         console.log(response.data.allExpense);
         for (var i = 0; i < response.data.allExpense.length; i++) {
             addExpenseOnScreen(response.data.allExpense[i]);
             showPagination(response.data);
         }
-    } catch(err) {
+    } catch (err) {
         console.log(err);
     }
 }
