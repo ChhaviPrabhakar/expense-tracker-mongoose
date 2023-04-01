@@ -1,5 +1,9 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const path = require('path');
+const fs = require('fs');
 
 const sequelize = require('./util/database');
 
@@ -9,10 +13,17 @@ const Order = require('./models/order');
 const ForgotPswd = require('./models/forgot');
 const DownloadedExpense = require('./models/download');
 
+const accessLogStream = fs.createWriteStream(
+    path.join(__dirname, 'access.log'),
+    { flags: 'a' }
+);
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(helmet());
+app.use(morgan('combined', { stream: accessLogStream }));
 
 const userRoutes = require('./routes/user');
 const expenseRoutes = require('./routes/expense');
@@ -40,6 +51,6 @@ DownloadedExpense.belongsTo(User);
 
 sequelize.sync()  //{force: true}
 .then(result => {
-    app.listen(3000);
+    app.listen(process.env.PORT || 3000);
 })
 .catch(err => console.log(err));
