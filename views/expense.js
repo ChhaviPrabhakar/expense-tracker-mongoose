@@ -18,6 +18,7 @@ function showLeaderboard() {
     LBbutton.type = "button";
     LBbutton.value = "Show Leaderboard";
     document.getElementById('message').appendChild(LBbutton);
+    LBbutton.classList.add("lbButton");
     LBbutton.onclick = async () => {
         try {
             const token = localStorage.getItem('token');
@@ -69,11 +70,13 @@ function addExpenseOnScreen(expense) {
     parentNode.innerHTML += childHTML;
 }
 
+const expenseList = document.getElementById('expenseList');
 const page = 1;
 const rowPerPage = document.getElementById('rowPerPage');
 const rowBtn = document.getElementById('rowbtn');
 rowBtn.addEventListener('click', () => {
     localStorage.setItem('rowPerPage', rowPerPage.value);
+    removeAllExpensesFromScreen(expenseList);
     getExpenses(page);
 });
 
@@ -88,8 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             showLeaderboard();
         }
 
-        const dynamicPgn = localStorage.getItem('rowPerPage');
-        const row = dynamicPgn || rowPerPage.value;
+        const row = localStorage.getItem('rowPerPage') || rowPerPage.value;
 
         const response = await axios
             .get(`http://localhost:3000/expense/get-expense?page=${page}&rowPerPage=${row}`, { headers: { "Authorization": token } });
@@ -117,19 +119,19 @@ function showPagination({
     if (hasPrevPage) {
         const btn2 = document.createElement('button');
         btn2.innerHTML = prevPage;
-        btn2.addEventListener('click', () => { getExpenses(prevPage) });
+        btn2.addEventListener('click', () => {removeAllExpensesFromScreen(expenseList), getExpenses(prevPage) });
         pagination.appendChild(btn2);
     }
 
     const btn1 = document.createElement('button');
     btn1.innerHTML = `<h3>${currentPage}</h3>`;
-    btn1.addEventListener('click', () => { getExpenses(currentPage) });
+    btn1.addEventListener('click', () => { removeAllExpensesFromScreen(expenseList), getExpenses(currentPage) });
     pagination.appendChild(btn1);
 
     if (hasNextPage) {
         const btn3 = document.createElement('button');
         btn3.innerHTML = nextPage;
-        btn3.addEventListener('click', () => { getExpenses(nextPage) });
+        btn3.addEventListener('click', () => { removeAllExpensesFromScreen(expenseList), getExpenses(nextPage) });
         pagination.appendChild(btn3);
     }
 }
@@ -138,9 +140,8 @@ async function getExpenses(page) {
     try {
         const token = localStorage.getItem('token');
 
-        const dynamicPgn = localStorage.getItem('rowPerPage');
-        const row = dynamicPgn || rowPerPage.value;
-        
+        const row = localStorage.getItem('rowPerPage') || rowPerPage.value;
+
         const response = await axios
             .get(`http://localhost:3000/expense/get-expense?page=${page}&rowPerPage=${row}`, { headers: { "Authorization": token } });
         console.log(response.data.allExpense);
@@ -164,11 +165,25 @@ async function deleteExpense(expenseId) {
     }
 }
 
+async function editExpense(exAmo, description, category, expenseId){
+    document.getElementById('exAmo').value = exAmo;
+    document.getElementById('choDes').value = description;
+    document.getElementById('choCat').value = category;
+    deleteExpense(expenseId);
+}
+
 function removeExpenseFromScreen(expenseId) {
     let parentNode = document.getElementById('expenseList');
     let childNodeToBeDeleted = document.getElementById(expenseId);
     if (childNodeToBeDeleted) {
         parentNode.removeChild(childNodeToBeDeleted);
+    }
+}
+
+function removeAllExpensesFromScreen(ulElement) {
+    const listItems = ulElement.querySelectorAll('li');
+    for (let i = 0; i < listItems.length; i++) {
+        ulElement.removeChild(listItems[i]);
     }
 }
 

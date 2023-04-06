@@ -55,21 +55,20 @@ exports.addExpense = async (req, res, next) => {
 
 exports.getExpense = async (req, res, next) => {
     try {
-        const EXPENSES_PER_PAGE = 2;
-        const totalExpense = await Expense.count();
-        console.log('totalExpense-->', totalExpense);
+        const EXPENSES_PER_PAGE = parseInt(req.query.rowPerPage);
+        const totalExpense = await req.user.countExpenses();
         const page = req.query.page || 1;
-        console.log(page);
 
         const allExpense = await Expense.findAll({ where: { userId: req.user.id }, offset: (page - 1) * EXPENSES_PER_PAGE, limit: EXPENSES_PER_PAGE });
 
-        res.status(200).json({ allExpense, success: true,
-        currentPage: page,
-        hasNextPage: EXPENSES_PER_PAGE * page < totalExpense,
-        nextPage: parseInt(page) + 1,
-        hasPrevPage: page > 1,
-        prevPage: page - 1,
-        lastPage: Math.ceil(totalExpense / EXPENSES_PER_PAGE)
+        res.status(200).json({
+            allExpense, success: true,
+            currentPage: page,
+            hasNextPage: EXPENSES_PER_PAGE * page < totalExpense,
+            nextPage: parseInt(page) + 1,
+            hasPrevPage: page > 1,
+            prevPage: page - 1,
+            lastPage: Math.ceil(totalExpense / EXPENSES_PER_PAGE)
         });
     } catch (err) {
         console.log(err);

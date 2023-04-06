@@ -12,7 +12,8 @@ exports.getUserLeaderboard = async (req, res, next) => {
             //         attributes: []
             //     }
             // ],
-            group: ['user.id'],
+            // group: ['user.id'],
+            
             order: [['totalExpenses', 'DESC']]
 
         })

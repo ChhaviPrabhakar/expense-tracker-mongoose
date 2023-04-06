@@ -48,6 +48,10 @@ button:hover {
   width: 50%;
 }
 
+.forgotbtn {
+  background-color: rgb(22, 18, 50);
+}
+
 /* Add padding to container elements */
 .container {
     padding: 16px;
@@ -74,4 +78,10 @@ button:hover {
   .cancelbtn, .signupbtn {
     width: 100%;
   }
+}
+
+#errmsg {
+  color: red;
+  font-family: cursive;
+  font-style: oblique;
 }

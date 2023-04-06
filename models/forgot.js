@@ -1,10 +1,10 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../util/database');
 
-const ForgotPswd = sequelize.define('ForgotPswdReq', {
+const ForgotPswd = sequelize.define('ForgotPswd', {
     id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         primaryKey: true
     },

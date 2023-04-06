@@ -1,53 +1,58 @@
 const Sib = require('sib-api-v3-sdk');
 require('dotenv').config();
 const ForgotPswd = require('../models/forgot');
+const User = require('../models/user');
 const uuid = require('uuid');
+const bcrypt = require('bcrypt');
 
 exports.forgotPswd = async (req, res, next) => {
     try {
-        const email = req.body.email;
-        const id = uuid.v4();
-        await req.user.createForgotPswd({ id, isActive: true });
+        const { email } = req.body;
+        const user = await User.findOne({ where: { email } });
+        if (user) {
+            const id = uuid.v4();
+            await ForgotPswd.create({ id, isActive: true, userId: user.id });
 
-        const client = Sib.ApiClient.instance
+            const client = Sib.ApiClient.instance
 
-        const apiKey = client.authentications['api-key']
-        apiKey.apiKey = process.env.SIB_API_KEY
+            const apiKey = client.authentications['api-key']
+            apiKey.apiKey = process.env.SIB_API_KEY
 
-        const sender = {
-            email: 'steve@gmail.com'
-            // name: 'Steve Rodgers',
-        }
-
-        const recievers = [
-            {
-                email: email
+            const sender = {
+                email: 'satyamkumar2020@gmail.com'
+                // name: 'Steve Rodgers',
             }
-        ]
 
-        const transactionalEmailApi = new Sib.TransactionalEmailsApi()
+            const recievers = [
+                {
+                    email: email
+                }
+            ]
 
-        transactionalEmailApi
-            .sendTransacEmail({
-                subject: 'Reset your password',
-                sender,
-                to: recievers,
-                textContent: `Reset your password from this link :- http://localhost:3000/password/resetpasssword/:id`
-                //         htmlContent: `
-                // 	<h1>Become a {{params.role}} developer</h1>
-                // 	<a href='https://cules-coding.vercel.app/'>Cules Coding</a>
-                // `,
-                //         params: {
-                //             role: 'frontend',
-                //         },
-            })
-            .then(console.log)
-            .catch(console.log)
+            const transactionalEmailApi = new Sib.TransactionalEmailsApi()
 
-        res.status(200).json({ message: 'Reset link sent to your email' });
+            await transactionalEmailApi
+                .sendTransacEmail({
+                    subject: 'Reset your password',
+                    sender,
+                    to: recievers,
+                    // textContent: `Reset your password from this link :- http://localhost:3000/password/resetpasssword/${id}`
+                    htmlContent: `<h1>Reset your password from this link</h1>
+                	<a href="http://localhost:3000/password/resetpassword/${id}">Reset password</a>`
+                    // params: {
+                    //     role: 'frontend',
+                    // },
+                })
+            // .then(console.log)
+            // .catch(console.log)
+
+            res.status(200).json({ message: 'Reset link sent to your email', success: true });
+        } else {
+            throw new Error('User does not exist');
+        }
     } catch (err) {
         console.log(err);
-        res.status(500).json(err);
+        return res.status(500).json({ message: err, success: false });
     }
 }
 
@@ -55,8 +60,9 @@ exports.resetPswd = async (req, res, next) => {
     try {
         const reqId = req.params.id;
         const request = await ForgotPswd.findOne({ where: { id: reqId } });
-        if (request) {
-            await ForgotPswd.update({ isActive: false });
+        if (request.id == reqId) {
+            await request.update({ isActive: false });
+            console.log('a');
             res.status(200).send(`<html>
                                     <script>
                                         function formsubmitted(e){
@@ -65,42 +71,50 @@ exports.resetPswd = async (req, res, next) => {
                                         }
                                     </script>
                                     <form action="/password/updatepassword/${reqId}" method="get">
-                                        <label for="newpassword">Enter New password</label>
+                                        <label for="newpassword">Enter New Password</label>
                                         <input name="newpassword" type="password" required></input>
-                                        <button>reset password</button>
+                                        <button>Reset password</button>
                                     </form>
                                 </html>`
             );
+        } else {
+            throw new Error('Something went wrong!, resend your mail');
         }
     } catch (err) {
         console.log(err);
+        res.status(500).json({ success: false, error: err });
     }
 }
 
-exports.updatepassword = async (req, res, next) {
+exports.updatepassword = async (req, res, next) => {
     try {
         const { newpassword } = req.query;
-        const { resetpasswordid } = req.params;
-        await ForgotPswd.findOne({ where: { id: resetpasswordid } });
-        await User.findOne({ where: { id: resetpasswordrequest.userId } });
+        const { updateId } = req.params;
+        const request = await ForgotPswd.findOne({ where: { id: updateId } });
+        if (!request) {
+            throw new Error('Invalid request ID');
+        }
+        const user = await User.findOne({ where: { id: request.userId } });
 
-        const saltRounds = 10;
-        bcrypt.genSalt(saltRounds, function (err, salt) {
-            if (err) {
-                console.log(err);
-                throw new Error(err);
-            }
-            bcrypt.hash(newpassword, salt, function (err, hash) {
+        if (!newpassword) {
+            return res.status(400).json({ error: 'Password is required', success: false });
+        }
+
+        if (user) {
+            const saltRounds = 10;
+            bcrypt.hash(newpassword, saltRounds, async (err, hash) => {
                 if (err) {
                     console.log(err);
                     throw new Error(err);
                 }
-                await User.update({ password: hash })
-                res.status(201).json({ message: 'Successfuly update the new password' });
+                await user.update({ password: hash });
+                res.status(201).json({ message: 'New password updated successfully!' });
             });
-        });
+        } else {
+            res.status(404).json({ error: 'No user exist', success: false });
+        }
     } catch (err) {
         console.log(err);
-        return res.status(403).json({ error, success: false } )
+        return res.status(403).json({ err, success: false })
     }
 }

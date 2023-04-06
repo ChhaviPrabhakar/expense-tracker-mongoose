@@ -16,11 +16,11 @@ async function signUp(e) {
 
     try {
         const res = await axios
-        .post('http://localhost:3000/user/signUp', signUpDetails);
+            .post('http://localhost:3000/user/signUp', signUpDetails);
         alert(res.data.message);
-        window.location.href ="./login.html";
-    } catch(err) {
-        console.log(JSON.stringify(err));
+        window.location.href = "./login.html";
+    } catch (err) {
+        document.getElementById('errmsg').innerHTML = err.response.data.err;
         document.body.innerHTML += `<div style="color:red;">${err.message} <div>`;
     }
 }

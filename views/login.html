@@ -10,17 +10,21 @@
 </head>
 
 <body>
-    <form id="signUpForm" onsubmit="login(event)" style="border:1px solid #ccc">
+    <form id="loginForm" onsubmit="login(event)" style="border:1px solid #ccc">
         <div class="container">
             <h1>Log In</h1>
             <p>Please enter your details to login.</p>
             <hr>
+            
+            <div id="errmsg"></div><br>
 
             <label for="email"><b>Email</b></label>
             <input type="text" id="email" placeholder="Enter Email*" name="email" required>
 
             <label for="psw"><b>Password</b></label>
             <input type="password" id="pswd" placeholder="Enter Password*" name="psw" required>
+            
+            <a href="./forgotPswd.html" style="color:rgb(255, 10, 10)">Forgot password?</a>
 
             <!-- <p>By creating an account you agree to our <a href="#" style="color:dodgerblue">Terms & Privacy</a>.</p> -->
 
