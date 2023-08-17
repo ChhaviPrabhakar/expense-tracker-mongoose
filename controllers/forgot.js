@@ -8,10 +8,11 @@ const bcrypt = require('bcrypt');
 exports.forgotPswd = async (req, res, next) => {
     try {
         const { email } = req.body;
-        const user = await User.findOne({ where: { email } });
+
+        const user = await User.findOne({ email: email });
         if (user) {
             const id = uuid.v4();
-            await ForgotPswd.create({ id, isActive: true, userId: user.id });
+            await ForgotPswd.create({ _id: id, isActive: true, userId: user._id });
 
             const client = Sib.ApiClient.instance
 
@@ -59,10 +60,10 @@ exports.forgotPswd = async (req, res, next) => {
 exports.resetPswd = async (req, res, next) => {
     try {
         const reqId = req.params.id;
-        const request = await ForgotPswd.findOne({ where: { id: reqId } });
-        if (request.id == reqId) {
-            await request.update({ isActive: false });
-            console.log('a');
+
+        const request = await ForgotPswd.findOne({ _id: reqId, isActive: true });
+        if (request._id.toString() == reqId) {
+            await ForgotPswd.updateOne({_id: reqId}, { isActive: false });
             res.status(200).send(`<html>
                                     <script>
                                         function formsubmitted(e){
@@ -90,11 +91,12 @@ exports.updatepassword = async (req, res, next) => {
     try {
         const { newpassword } = req.query;
         const { updateId } = req.params;
-        const request = await ForgotPswd.findOne({ where: { id: updateId } });
+        
+        const request = await ForgotPswd.findById(updateId);
         if (!request) {
             throw new Error('Invalid request ID');
         }
-        const user = await User.findOne({ where: { id: request.userId } });
+        const user = await User.findById(request.userId);
 
         if (!newpassword) {
             return res.status(400).json({ error: 'Password is required', success: false });
@@ -107,8 +109,25 @@ exports.updatepassword = async (req, res, next) => {
                     console.log(err);
                     throw new Error(err);
                 }
-                await user.update({ password: hash });
-                res.status(201).json({ message: 'New password updated successfully!' });
+                await user.updateOne({ password: hash });
+                // Construct the HTML response with the success message and redirection
+                const htmlResponse = `
+                    <html>
+                        <head>
+                            <meta http-equiv="refresh" content="3;url=/login.html">
+                        </head>
+                        <body>
+                            <h1>New password updated successfully!</h1>
+                            <p>You will be redirected to the login page in few seconds...</p>
+                            <script>
+                                setTimeout(function() {
+                                    window.location.href = "/login.html";
+                                }, 3000);
+                            </script>
+                        </body>
+                    </html>
+                `;
+                res.status(201).send(htmlResponse);
             });
         } else {
             res.status(404).json({ error: 'No user exist', success: false });

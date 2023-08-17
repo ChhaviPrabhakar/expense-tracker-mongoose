@@ -13,10 +13,7 @@ function isStringInvalid(string) {
 
 exports.signUp = async (req, res, next) => {
     try {
-        const name = req.body.name;
-        const email = req.body.email;
-        const password = req.body.password;
-        //const { name, email, password } = req.body;
+        const { name, email, password } = req.body;
 
         if (isStringInvalid(name) || isStringInvalid(email) || isStringInvalid(password)) {
             return res.status(400).json({ err: "Something is missing!" });
@@ -25,12 +22,12 @@ exports.signUp = async (req, res, next) => {
         const saltRounds = 10;
         bcrypt.hash(password, saltRounds, async (err, hash) => {
             try {
-                const data = await User.create({
+                const userData = new User({
                     name: name,
                     email: email,
                     password: hash
                 });
-                //User.create({ name, email, password });
+                await userData.save();
                 res.status(201).json({ message: 'Successfully Signed Up' });
             } catch(err) {
                 console.log(err);
@@ -54,15 +51,15 @@ exports.login = async (req, res, next) => {
             return res.status(400).json({ err: "Email or Password is missing!" });
         }
 
-        const user = await User.findAll({ where: { email } });
+        const user = await User.findOne({ email });
 
-        if (user.length > 0) {
+        if (user) {
             // if(user[0].password === password) {
-            bcrypt.compare(password, user[0].password, (err, result) => {
+            bcrypt.compare(password, user.password, (err, result) => {
                 if (err) {
                     throw new Error('Something went wrong!');
                 } else if (result === true) {
-                    res.status(200).json({ success: true, message: 'Logged in Successfully!', token: generateAccessToken(user[0].id, user[0].ispremiumuser) });
+                    res.status(200).json({ success: true, message: 'Logged in Successfully!', token: generateAccessToken(user._id, user.ispremiumuser) });
                 } else {
                     return res.status(401).json({ success: false, message: 'Password is incorrect!' });
                 }
@@ -75,8 +72,3 @@ exports.login = async (req, res, next) => {
         res.status(500).json({ message: err, success: false });
     }
 };
-
-// module.exports = {
-//     login,
-//     generateAccessToken
-// };

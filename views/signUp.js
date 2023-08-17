@@ -12,11 +12,11 @@ async function signUp(e) {
         name: nameInput.value,
         email: emailInput.value,
         password: pswdInput.value
-    }
+    };
 
     try {
         const res = await axios
-            .post('http://44.210.136.33:3000/user/signUp', signUpDetails);
+            .post('http://localhost:3000/user/signUp', signUpDetails);
         alert(res.data.message);
         window.location.href = "./login.html";
     } catch (err) {

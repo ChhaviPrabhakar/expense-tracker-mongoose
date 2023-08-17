@@ -4,11 +4,11 @@ async function login(e) {
     const loginDetails = {
         email: e.target.email.value,
         password: e.target.pswd.value
-    }
+    };
 
     try {
         const response = await axios
-            .post('http://44.210.136.33:3000/user/login', loginDetails);
+            .post('http://localhost:3000/user/login', loginDetails);
         localStorage.setItem('token', response.data.token);
         window.location.href = "./expense.html";
     } catch (err) {

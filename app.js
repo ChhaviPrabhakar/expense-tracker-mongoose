@@ -1,29 +1,22 @@
 const express = require('express');
 const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
+// const helmet = require('helmet');
+// const morgan = require('morgan');
+// const fs = require('fs');
 const path = require('path');
-const fs = require('fs');
+const mongoose = require('mongoose');
 
-const sequelize = require('./util/database');
-
-const User = require('./models/user');
-const Expense = require('./models/expense');
-const Order = require('./models/order');
-const ForgotPswd = require('./models/forgot');
-const DownloadedExpense = require('./models/download');
-
-const accessLogStream = fs.createWriteStream(
-    path.join(__dirname, 'access.log'),
-    { flags: 'a' }
-);
+// const accessLogStream = fs.createWriteStream(
+//     path.join(__dirname, 'access.log'),
+//     { flags: 'a' }
+// );
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(helmet());
-app.use(morgan('combined', { stream: accessLogStream }));
+// app.use(helmet());
+// app.use(morgan('combined', { stream: accessLogStream }));
 
 const userRoutes = require('./routes/user');
 const expenseRoutes = require('./routes/expense');
@@ -41,20 +34,10 @@ app.use((req, res) => {
     res.sendFile(path.join(__dirname, `views/${req.url}`));
 });
 
-User.hasMany(Expense);
-Expense.belongsTo(User);
-
-User.hasMany(Order);
-Order.belongsTo(User);
-
-User.hasMany(ForgotPswd);
-ForgotPswd.belongsTo(User);
-
-User.hasMany(DownloadedExpense);
-DownloadedExpense.belongsTo(User);
-
-sequelize.sync()  //{force: true}
+mongoose
+.connect('mongodb+srv://prabhakarchhavi9:z1CNQRBedteE946d@cluster0.hzxeuvy.mongodb.net/expenseTracker?retryWrites=true&w=majority')
 .then(result => {
     app.listen(process.env.PORT || 3000);
+    console.log('>>>>> Connected to PORT 3000 <<<<<');
 })
 .catch(err => console.log(err));
