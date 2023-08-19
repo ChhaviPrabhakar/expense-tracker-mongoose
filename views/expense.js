@@ -70,7 +70,7 @@ function addExpenseOnScreen(expense) {
     let parentNode = document.getElementById('expenseList');
     let childHTML = `<li id="${expense._id}"> ${expense.exAmount} - ${expense.description} - ${expense.category}
     <button type=del onclick= deleteExpense('${expense._id}')> Delete Expense </button>
-    <button type=edit onclick= editExpense('${expense.exAmount}','${expense.description}','${expense.category}','${expense._id}')> Edit Expense </button>
+    <button type="edit" onclick= "editExpense('${expense.exAmount}','${expense.description}','${expense.category}','${expense._id}')"> Edit Expense </button>
     </li>`;
     parentNode.innerHTML += childHTML;
 }
