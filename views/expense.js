@@ -40,15 +40,20 @@ function showLeaderboard() {
 async function addExpense(e) {
     e.preventDefault();
     try {
-        const expense = {
+        let expense = {
             exAmount: e.target.exAmo.value,
             description: e.target.choDes.value,
             category: e.target.choCat.value
         };
+        if(expense.category == "others") {
+            expense.category = e.target.otherCategory.value;
+            e.target.otherCategory.value = '';
+        }
         const token = localStorage.getItem('token');
         const response = await axios
             .post('http://localhost:3000/expense/add-expense', expense, { headers: { "Authorization": token } });
         addExpenseOnScreen(response.data.newExpense);
+        document.getElementById('totalExpenses').innerHTML = `Total Expenses- ${response.data.totExp}`;
     } catch (err) {
         console.log(err);
         document.body.innerHTML += `<div style="color:red;">${err.message} <div>`;
@@ -97,6 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             .get(`http://localhost:3000/expense/get-expense?page=${page}&rowPerPage=${row}`, { headers: { "Authorization": token } });
         console.log(response.data.allExpense);
         document.getElementById('greet').innerHTML = `Hello! ${response.data.name}`;
+        document.getElementById('totalExpenses').innerHTML = `Total Expenses- ${response.data.totExp}`;
         for (var i = 0; i < response.data.allExpense.length; i++) {
             addExpenseOnScreen(response.data.allExpense[i]);
             showPagination(response.data);
@@ -161,6 +167,7 @@ async function deleteExpense(expenseId) {
         const response = await axios
             .delete(`http://localhost:3000/expense/delete-expense/${expenseId}`, { headers: { "Authorization": token } });
         removeExpenseFromScreen(expenseId);
+        document.getElementById('totalExpenses').innerHTML = `Total Expenses- ${response.data.totExp}`;
     } catch (err) {
         console.log(err);
     }
@@ -267,5 +274,16 @@ function logout() {
     if (confirm('Are you sure want to Logout?')) {
         localStorage.clear();
         return window.location.href = "./login.html";
+    }
+}
+
+function checkOtherOption() {
+    var select = document.getElementById("choCat");
+    var otherInputBox = document.getElementById("otherCategoryInput");
+    
+    if (select.value === "others") {
+        otherInputBox.style.display = "block";
+    } else {
+        otherInputBox.style.display = "none";
     }
 }

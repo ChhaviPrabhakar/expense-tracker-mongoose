@@ -32,7 +32,7 @@ exports.addExpense = async (req, res, next) => {
     try {
         const { exAmount, description, category } = req.body;
 
-        if (exAmount == undefined || exAmount.length === 0) {
+        if (exAmount == undefined || exAmount.length === 0 || category == undefined || category.length === 0) {
             return res.status(400).json({ success: false, message: 'Parameters missing!' });
         }
         const newExpense = new Expense({
@@ -44,12 +44,12 @@ exports.addExpense = async (req, res, next) => {
         const createExpense = newExpense.save();
 
         const user = req.user;
-        user.totalExpenses += exAmount;
+        user.totalExpenses += parseInt(exAmount);
         const updateUserTotalAmount = user.save();
 
         await Promise.all([createExpense, updateUserTotalAmount]);
 
-        res.status(201).json({ newExpense, success: true });
+        res.status(201).json({ newExpense, totExp: req.user.totalExpenses, success: true });
     } catch (err) {
         console.log(err);
         return res.status(500).json({ success: false, error: err });
@@ -72,6 +72,7 @@ exports.getExpense = async (req, res, next) => {
             allExpense,
             success: true,
             name: req.user.name,
+            totExp: req.user.totalExpenses,
             currentPage: page,
             hasNextPage: EXPENSES_PER_PAGE * page < totalExpense,
             nextPage: page + 1,
@@ -100,12 +101,12 @@ exports.deleteExpense = async (req, res, next) => {
         const deleteExpense = Expense.findByIdAndRemove(expenseId);
 
         const user = req.user;
-        user.totalExpenses -= deletedExpense.exAmount;
+        user.totalExpenses -= parseInt(deletedExpense.exAmount);
         const updateUserTotalAmount = user.save();
 
         await Promise.all([deleteExpense, updateUserTotalAmount]);
 
-        res.status(200).json({ success: true, message: 'Successfully deleted!' });
+        res.status(200).json({ success: true, totExp: req.user.totalExpenses, message: 'Successfully deleted!' });
     } catch (err) {
         console.log(err);
         return res.status(500).json({ success: false, message: 'Failed!' });

@@ -224,6 +224,7 @@ button[type=edit] {
 
 #pagination {
     margin-left: 160px;
+    display: flex;
 }
 
 #greet {
@@ -307,4 +308,16 @@ button[type=edit] {
 /* button click effect*/
 .logoutBtn:active {
     transform: translate(2px, 2px);
+}
+
+#totalExpenses {
+    font-family: 'Georgia', 'Times New Roman', Times, serif;
+    font-size: medium;
+    color: #292888;
+    float: right;
+    clear: right;
+    margin-top: 10px;
+    background-color: #fff52f;
+    padding: 3px;
+    border-radius: 10px;
 }
