@@ -42,7 +42,13 @@ exports.purchasePremium = async (req, res, next) => {
 
 exports.updateTransactionStatus = async (req, res, next) => {
     try {
-        const { order_id, payment_id } = req.body;
+        const { order_id, payment_id, reason } = req.body;
+
+        if(reason === 'payment_failed') {
+            await Order.updateOne({ orderid: order_id }, { status: 'FAILED' });
+            return res.status(400).json({ success: false, message: 'Transaction Failed' });
+        }
+
         const order = await Order.findOne({ orderid: order_id });
         if (!order) {
             return res.status(404).json({ success: false, message: 'Order not found' });

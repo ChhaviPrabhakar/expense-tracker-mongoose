@@ -45,7 +45,7 @@ async function addExpense(e) {
             description: e.target.choDes.value,
             category: e.target.choCat.value
         };
-        if(expense.category == "others") {
+        if (expense.category == "others") {
             expense.category = e.target.otherCategory.value;
             e.target.otherCategory.value = '';
         }
@@ -176,8 +176,26 @@ async function deleteExpense(expenseId) {
 async function editExpense(exAmo, description, category, expenseId) {
     document.getElementById('exAmo').value = exAmo;
     document.getElementById('choDes').value = description;
-    document.getElementById('choCat').value = category;
+
+    let optionArr = document.getElementById('choCat').options;
+    if(optionsHave(optionArr, category)) {
+        document.getElementById('choCat').value = category;
+    } else {
+        document.getElementById('choCat').value = 'others';
+        checkOtherOption();
+        document.getElementById('otherCategory').value = category;
+    }
+    
     await deleteExpense(expenseId);
+}
+
+function optionsHave(optionArray, category) {
+    for(let i=0; i<optionArray.length; i++) {
+        if(optionArray[i].value == category) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function removeExpenseFromScreen(expenseId) {
@@ -232,9 +250,19 @@ document.getElementById('rzp-button1').onclick = async function (e) {
         rzp1.open();
         e.preventDefault();
 
-        rzp1.on('payment.failed', function (response) {
-            console.log(response);
-            alert('Transaction failed!');
+        rzp1.on('payment.failed', async function (response) {
+            try {
+                console.log(response);
+                const res = await axios
+                    .post('http://localhost:3000/purchase/updateTransactionStatus', {
+                        order_id: response.error.metadata.order_id,
+                        payment_id: response.error.metadata.payment_id,
+                        reason: response.error.reason
+                    }, { headers: { "Authorization": token } });
+            } catch (err) {
+                console.log(err);
+                alert(`${err.response.data.message}, An error occurred while processing the payment.`);
+            }
         });
     } catch (err) {
         console.log(err);
@@ -279,11 +307,11 @@ function logout() {
 
 function checkOtherOption() {
     var select = document.getElementById("choCat");
-    var otherInputBox = document.getElementById("otherCategoryInput");
-    
+    var otherInputDiv = document.getElementById("otherCategoryInput");
+
     if (select.value === "others") {
-        otherInputBox.style.display = "block";
+        otherInputDiv.style.display = "block";
     } else {
-        otherInputBox.style.display = "none";
+        otherInputDiv.style.display = "none";
     }
 }

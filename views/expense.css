@@ -134,6 +134,11 @@ button[type=edit] {
 #leaderboard {
     background: rgba(46, 120, 223, 0.557);
     float: inherit;
+    list-style-type: decimal;
+}
+
+#expenseList {
+    list-style-type: square;
 }
 
 #message {
@@ -224,7 +229,6 @@ button[type=edit] {
 
 #pagination {
     margin-left: 160px;
-    display: flex;
 }
 
 #greet {
