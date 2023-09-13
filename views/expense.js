@@ -287,13 +287,30 @@ async function download() {
             let downloadedList = document.getElementById('downloadedExpense');
             downloadedList.innerHTML += '<h1>Downloaded Expenses</h1>';
             for (var i = 0; i < fURL.data.downloadedExpenseData.length; i++) {
-                downloadedList.innerHTML += `<li><a href=${fURL.data.downloadedExpenseData[i]}>File${i + 1}</a> Downloaded at - ${fURL.data.downloadedExpenseData[i].updatedAt}</li>`;
+                downloadedList.innerHTML += `<li><a href=${fURL.data.downloadedExpenseData[i]}>File${i + 1}</a> Downloaded at - ${getDateFromTimestamp(fURL.data.downloadedExpenseData[i].updatedAt)} ~ ${getTimeFromTimestamp(fURL.data.downloadedExpenseData[i].updatedAt)}</li>`;
             }
         } else {
             throw new Error(response.data.message)
         }
     } catch (err) {
         console.log(err);
+    }
+}
+
+function getTimeFromTimestamp(timestamp) {
+    return new Date(timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+function getDateFromTimestamp(timestamp) {
+    const currentDate = new Date();
+    const inputDate = new Date(timestamp);
+
+    if (inputDate.toDateString() === currentDate.toDateString()) {
+        return 'Today';
+    } else if (inputDate.toDateString() === new Date(currentDate.getTime() - 24 * 60 * 60 * 1000).toDateString()) {
+        return 'Yesterday';
+    } else {
+        return inputDate.toISOString().split('T')[0];
     }
 }
 

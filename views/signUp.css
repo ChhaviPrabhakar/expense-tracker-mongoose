@@ -1,7 +1,10 @@
-* {box-sizing: border-box}
+* {
+  box-sizing: border-box
+}
 
 /* Full-width input fields */
-  input[type=text], input[type=password] {
+input[type=text],
+input[type=password] {
   width: 100%;
   padding: 15px;
   margin: 5px 0 22px 0;
@@ -10,7 +13,8 @@
   background: #f1f1f1;
 }
 
-input[type=text]:focus, input[type=password]:focus {
+input[type=text]:focus,
+input[type=password]:focus {
   background-color: #ddd;
   outline: none;
 }
@@ -33,7 +37,7 @@ button {
 }
 
 button:hover {
-  opacity:1;
+  opacity: 1;
 }
 
 /* Extra styles for the cancel button */
@@ -43,7 +47,8 @@ button:hover {
 }
 
 /* Float cancel and signup buttons and add an equal width */
-.cancelbtn, .signupbtn {
+.cancelbtn,
+.signupbtn {
   float: left;
   width: 50%;
 }
@@ -54,16 +59,16 @@ button:hover {
 
 /* Add padding to container elements */
 .container {
-    padding: 16px;
-    position: relative;
-    margin: 8% auto;
-    min-height: 60%;
-    width: 50%;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
-    background: white;
-    padding: auto;
-    box-sizing: border-box;
-    border-radius: 8px;
+  padding: 16px;
+  position: relative;
+  margin: 8% auto;
+  min-height: 60%;
+  width: 50%;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+  background: white;
+  padding: auto;
+  box-sizing: border-box;
+  border-radius: 8px;
 }
 
 /* Clear floats */
@@ -75,7 +80,9 @@ button:hover {
 
 /* Change styles for cancel button and signup button on extra small screens */
 @media screen and (max-width: 300px) {
-  .cancelbtn, .signupbtn {
+
+  .cancelbtn,
+  .signupbtn {
     width: 100%;
   }
 }
@@ -84,4 +91,43 @@ button:hover {
   color: red;
   font-family: cursive;
   font-style: oblique;
+}
+
+.made-with-love {
+  position: fixed;
+  bottom: 10px;
+  right: 18px;
+  z-index: 1000;
+  text-align: right;
+}
+
+.made-with-love span {
+  color: #666;
+  font-size: 15px;
+  display: inline-block;
+}
+
+.made-with-love a {
+  color: #000000;
+  text-decoration: none;
+}
+
+.made-with-love .fa {
+  color: #E90606;
+  margin: 0 3px;
+  font-size: 10px;
+  animation: pound .35s infinite alternate;
+  -webkit-animation: pound .35s infinite alternate;
+}
+
+@-webkit-keyframes pound {
+  to {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes pound {
+  to {
+    transform: scale(1.1);
+  }
 }
